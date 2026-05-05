@@ -1,0 +1,220 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1184,
+        -48
+      ],
+      "id": "2fa40a4a-a9f3-4b31-b7b3-152690fb107a",
+      "name": "Telegram Trigger",
+      "webhookId": "af834f14-b7bc-4655-b7a4-bccb6d0b016d",
+      "credentials": {
+        "telegramApi": {
+          "id": "waquAMHPwo4WmxuL",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Act as a professional Academic Scheduler. \nYour task is to take a list of subjects, their durations, and available days, then create a structured weekly schedule.\n\nConstraints:\n1. Distribute subjects logically across the provided days.\n2. Ensure there are no overlaps.\n3. Output ONLY a valid JSON array. Do not include any conversational text.\n4. Translate all values (Subject, Day) into Arabic in the final JSON.\n\nThe JSON structure must be:\n[\n  {\"day\": \"اليوم\", \"subject\": \"المادة\", \"start_time\": \"وقت البدء\", \"end_time\": \"وقت الانتهاء\"}\n] {{ $json.message.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -848,
+        -48
+      ],
+      "id": "0130b813-d5c2-4fbf-863e-b8111baf2bbf",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -976,
+        176
+      ],
+      "id": "8ff6fb86-0d6f-4593-8411-cfee63cb860d",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "BkwDBMxktq1XclUR",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// التأكد من استلام النص من مخرج الـ AI Agent\nlet aiResponse = items[0].json.output; \n\n// تنظيف النص في حال وجود علامات ```json\naiResponse = aiResponse.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n\ntry {\n    const scheduleArray = JSON.parse(aiResponse);\n    \n    // تحويل المصفوفة إلى تنسيق متوافق مع نود Google Sheets\n    return scheduleArray.map(item => {\n        return {\n            json: {\n                \"اليوم\": item.day,\n                \"المادة\": item.subject,\n                \"وقت البدء\": item.start_time,\n                \"وقت الانتهاء\": item.end_time\n            }\n        };\n    });\n} catch (error) {\n    throw new Error(\"فشل في تحليل مخرجات الذكاء الاصطناعي، تأكد من أن البرومبت يعمل بشكل صحيح.\");\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        -48
+      ],
+      "id": "304b8a1d-acd9-422a-a2b9-84896e1c6727",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1mgu5LNL7hDSkixOMQPctt8jww2RTHqi2z00UKJyaC_E",
+          "mode": "list",
+          "cachedResultName": "tp Ai",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mgu5LNL7hDSkixOMQPctt8jww2RTHqi2z00UKJyaC_E/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mgu5LNL7hDSkixOMQPctt8jww2RTHqi2z00UKJyaC_E/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "اليوم": "={{ $json['اليوم'] }}",
+            "المادة": "={{ $json['المادة'] }}",
+            "وقت البدء ": "={{ $json['وقت البدء'] }}",
+            "وقت الانتهاء ": "={{ $json['وقت الانتهاء'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "اليوم",
+              "displayName": "اليوم",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "المادة",
+              "displayName": "المادة",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "وقت البدء ",
+              "displayName": "وقت البدء ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "وقت الانتهاء ",
+              "displayName": "وقت الانتهاء ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "68497740-97e5-4003-9c56-fdc4c086f22e",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O9YyPEGDJjGRduRR",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6c188cb1-5642-4449-b82c-fc6e153db2ed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3abbae3abeb36a32f6020b27ee5c9ae69ad09068c9b59ddb7dc62857a4933294"
+  },
+  "id": "nxZUSZQxKDgBWTol",
+  "tags": []
+}
