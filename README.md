@@ -1,4 +1,5 @@
 # n8n_telegrem_ai_timetable_sync-
+![Workflow Screenshot](n8n.png)
 An automated scheduling system using n8n, AI agents (Groq), and Telegram to generate and sync weekly timetables directly to Google Sheets
 # 📅 AI-Powered Weekly Scheduler (n8n)
 
